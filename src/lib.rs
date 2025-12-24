@@ -26,6 +26,15 @@ fn bit_at<T: PrimInt>(value: &T, pos: &u32) -> bool {
     value.rotate_left(*pos).leading_zeros() == 0
 }
 
+impl<K, V> Default for CritBit<K, V>
+where
+    K: PrimInt,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<K, V> CritBit<K, V>
 where
     K: PrimInt,
@@ -44,15 +53,15 @@ where
 
     pub fn get(&self, key: &K) -> Option<&V> {
         match &self.0 {
-            &Some(ref node) => node.get(key),
+            Some(node) => node.get(key),
             &None => None,
         }
     }
 
     pub fn get_mut(&mut self, key: &K) -> Option<&mut V> {
-        match &mut self.0 {
-            &mut Some(ref mut node) => node.get_mut(key),
-            &mut None => None,
+        match self.0 {
+            Some(ref mut node) => node.get_mut(key),
+            None => None,
         }
     }
 
@@ -64,7 +73,7 @@ where
         match &mut self.0 {
             &mut Some(ref mut node) => node.insert(key, value),
             x => {
-                std::mem::replace(x, Some(CritBitNode::Leaf(key, value)));
+                x.replace(CritBitNode::Leaf(key, value));
                 None
             }
         }
