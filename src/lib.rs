@@ -191,10 +191,10 @@ impl<K: PrimInt, V> CritBitNode<K, V> {
 
 #[test]
 fn verify_bit_at() {
-    assert_eq!(bit_at(&1u8, &0u32), false);
-    assert_eq!(bit_at(&128u8, &0u32), true);
-    assert_eq!(bit_at(&1u8, &7u32), true);
-    assert_eq!(bit_at(&128u8, &7u32), false);
+    assert!(!bit_at(&1u8, &0u32));
+    assert!(bit_at(&128u8, &0u32));
+    assert!(bit_at(&1u8, &7u32));
+    assert!(!bit_at(&128u8, &7u32));
 }
 
 #[test]
@@ -206,9 +206,9 @@ fn empty_len() {
 #[test]
 fn empty_contains_key() {
     let t: CritBit<u8, ()> = CritBit::new();
-    assert_eq!(t.contains_key(&0u8), false);
-    assert_eq!(t.contains_key(&128u8), false);
-    assert_eq!(t.contains_key(&255u8), false);
+    assert!(!t.contains_key(&0u8));
+    assert!(!t.contains_key(&128u8));
+    assert!(!t.contains_key(&255u8));
 }
 
 #[test]
@@ -239,10 +239,10 @@ fn insert_len() {
 #[test]
 fn insert_contains_key() {
     let mut t: CritBit<u8, ()> = CritBit::new();
-    assert_eq!(t.contains_key(&0u8), false);
+    assert!(!t.contains_key(&0u8));
 
     t.insert(0u8, ());
-    assert_eq!(t.contains_key(&0u8), true);
+    assert!(t.contains_key(&0u8));
 }
 
 #[test]
