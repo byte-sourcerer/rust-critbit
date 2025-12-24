@@ -2,7 +2,7 @@
 
 name = "critbit"
 edition = "2024"
-version = "0.0.1"
+version = "0.1.0"
 authors = [
     "Alex Elsayed <eternaleye@gmail.com>",
     "Jiawei Chen <cjwcommuny@outlook.com>",
