@@ -7,18 +7,21 @@ pub struct CritBit<K, V>(Option<CritBitNode<K, V>>)
 where
     K: PrimInt;
 
-pub enum CritBitNode<K, V>
+enum CritBitNode<K, V>
 where
     K: PrimInt,
 {
     Leaf(K, V),
-    Internal(
-        (
-            Option<Box<CritBitNode<K, V>>>,
-            Option<Box<CritBitNode<K, V>>>,
-        ),
-        u32,
-    ),
+    Internal(InternalCritBitNode<K, V>),
+}
+
+struct InternalCritBitNode<K, V>
+where
+    K: PrimInt,
+{
+    left: Option<Box<CritBitNode<K, V>>>,
+    right: Option<Box<CritBitNode<K, V>>>,
+    crit: u32,
 }
 
 #[inline(always)]
@@ -88,7 +91,11 @@ impl<K: PrimInt, V> CritBitNode<K, V> {
     fn len(&self) -> usize {
         match *self {
             CritBitNode::Leaf(..) => 1,
-            CritBitNode::Internal((ref left, ref right), _) => left
+            CritBitNode::Internal(InternalCritBitNode {
+                ref left,
+                ref right,
+                ..
+            }) => left
                 .iter()
                 .chain(right.iter())
                 .map(|x| x.len())
@@ -99,12 +106,16 @@ impl<K: PrimInt, V> CritBitNode<K, V> {
     fn get(&self, key: &K) -> Option<&V> {
         match *self {
             CritBitNode::Leaf(ref k, ref v) if *k == *key => Some(v),
-            CritBitNode::Internal((Some(ref left), _), ref crit) if !bit_at(key, crit) => {
-                left.get(key)
-            }
-            CritBitNode::Internal((_, Some(ref right)), ref crit) if bit_at(key, crit) => {
-                right.get(key)
-            }
+            CritBitNode::Internal(InternalCritBitNode {
+                left: Some(ref left),
+                right: _,
+                ref crit,
+            }) if !bit_at(key, crit) => left.get(key),
+            CritBitNode::Internal(InternalCritBitNode {
+                left: _,
+                right: Some(ref right),
+                ref crit,
+            }) if bit_at(key, crit) => right.get(key),
             _ => None,
         }
     }
@@ -112,12 +123,16 @@ impl<K: PrimInt, V> CritBitNode<K, V> {
     fn get_mut(&mut self, key: &K) -> Option<&mut V> {
         match *self {
             CritBitNode::Leaf(ref k, ref mut v) if *k == *key => Some(v),
-            CritBitNode::Internal((Some(ref mut kid), _), ref crit) if !bit_at(key, crit) => {
-                kid.get_mut(key)
-            }
-            CritBitNode::Internal((_, Some(ref mut kid)), ref crit) if bit_at(key, crit) => {
-                kid.get_mut(key)
-            }
+            CritBitNode::Internal(InternalCritBitNode {
+                left: Some(ref mut kid),
+                right: _,
+                ref crit,
+            }) if !bit_at(key, crit) => kid.get_mut(key),
+            CritBitNode::Internal(InternalCritBitNode {
+                left: _,
+                right: Some(ref mut kid),
+                ref crit,
+            }) if bit_at(key, crit) => kid.get_mut(key),
             _ => None,
         }
     }
@@ -126,14 +141,19 @@ impl<K: PrimInt, V> CritBitNode<K, V> {
         match *self {
             CritBitNode::Leaf(ref k, ref mut v) if *k == key => Some(std::mem::replace(v, value)),
             CritBitNode::Leaf(..) => {
-                if let CritBitNode::Leaf(k, v) =
-                    std::mem::replace(self, CritBitNode::Internal((None, None), 0))
-                {
+                if let CritBitNode::Leaf(k, v) = std::mem::replace(
+                    self,
+                    CritBitNode::Internal(InternalCritBitNode {
+                        left: None,
+                        right: None,
+                        crit: 0,
+                    }),
+                ) {
                     let crit = (k ^ key).leading_zeros();
                     let _ = std::mem::replace(
                         self,
-                        CritBitNode::Internal(
-                            if k < key {
+                        CritBitNode::Internal({
+                            let (left, right) = if k < key {
                                 (
                                     Some(Box::new(CritBitNode::Leaf(k, v))),
                                     Some(Box::new(CritBitNode::Leaf(key, value))),
@@ -143,21 +163,25 @@ impl<K: PrimInt, V> CritBitNode<K, V> {
                                     Some(Box::new(CritBitNode::Leaf(key, value))),
                                     Some(Box::new(CritBitNode::Leaf(k, v))),
                                 )
-                            },
-                            crit,
-                        ),
+                            };
+                            InternalCritBitNode { left, right, crit }
+                        }),
                     );
                 } else {
                     unreachable!("We just checked that this was a leaf...")
                 }
                 None
             }
-            CritBitNode::Internal((Some(ref mut kid), _), ref crit) if !bit_at(&key, crit) => {
-                kid.insert(key, value)
-            }
-            CritBitNode::Internal((_, Some(ref mut kid)), ref crit) if bit_at(&key, crit) => {
-                kid.insert(key, value)
-            }
+            CritBitNode::Internal(InternalCritBitNode {
+                left: Some(ref mut kid),
+                right: _,
+                ref crit,
+            }) if !bit_at(&key, crit) => kid.insert(key, value),
+            CritBitNode::Internal(InternalCritBitNode {
+                left: _,
+                right: Some(ref mut kid),
+                ref crit,
+            }) if bit_at(&key, crit) => kid.insert(key, value),
             _ => unreachable!(
                 "Internal nodes should always have both branches filled, what happened?"
             ),
