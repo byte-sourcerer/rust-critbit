@@ -1,8 +1,12 @@
 [package]
 
 name = "critbit"
-version = "0.0.0"
-authors = ["Alex Elsayed <eternaleye@gmail.com>"]
+edition = "2024"
+version = "0.1.0"
+authors = [
+    "Alex Elsayed <eternaleye@gmail.com>",
+    "Jiawei Chen <cjwcommuny@outlook.com>",
+]
 
 [dependencies]
-num = "*"
+num = "0.4.3"
