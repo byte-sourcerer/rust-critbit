@@ -189,91 +189,96 @@ impl<K: PrimInt, V> CritBitNode<K, V> {
     }
 }
 
-#[test]
-fn verify_bit_at() {
-    assert!(!bit_at(&1u8, &0u32));
-    assert!(bit_at(&128u8, &0u32));
-    assert!(bit_at(&1u8, &7u32));
-    assert!(!bit_at(&128u8, &7u32));
-}
+#[cfg(test)]
+mod test {
+    use crate::{CritBit, bit_at};
 
-#[test]
-fn empty_len() {
-    let t: CritBit<u8, ()> = CritBit::new();
-    assert_eq!(t.len(), 0);
-}
+    #[test]
+    fn verify_bit_at() {
+        assert!(!bit_at(&1u8, &0u32));
+        assert!(bit_at(&128u8, &0u32));
+        assert!(bit_at(&1u8, &7u32));
+        assert!(!bit_at(&128u8, &7u32));
+    }
 
-#[test]
-fn empty_contains_key() {
-    let t: CritBit<u8, ()> = CritBit::new();
-    assert!(!t.contains_key(&0u8));
-    assert!(!t.contains_key(&128u8));
-    assert!(!t.contains_key(&255u8));
-}
+    #[test]
+    fn empty_len() {
+        let t: CritBit<u8, ()> = CritBit::new();
+        assert_eq!(t.len(), 0);
+    }
 
-#[test]
-fn empty_get() {
-    let t: CritBit<u8, ()> = CritBit::new();
-    assert_eq!(t.get(&0u8), None);
-    assert_eq!(t.get(&128u8), None);
-    assert_eq!(t.get(&255u8), None);
-}
+    #[test]
+    fn empty_contains_key() {
+        let t: CritBit<u8, ()> = CritBit::new();
+        assert!(!t.contains_key(&0u8));
+        assert!(!t.contains_key(&128u8));
+        assert!(!t.contains_key(&255u8));
+    }
 
-#[test]
-fn empty_get_mut() {
-    let mut t: CritBit<u8, ()> = CritBit::new();
-    assert!(t.get_mut(&0u8).is_none());
-    assert!(t.get_mut(&128u8).is_none());
-    assert!(t.get_mut(&255u8).is_none());
-}
+    #[test]
+    fn empty_get() {
+        let t: CritBit<u8, ()> = CritBit::new();
+        assert_eq!(t.get(&0u8), None);
+        assert_eq!(t.get(&128u8), None);
+        assert_eq!(t.get(&255u8), None);
+    }
 
-#[test]
-fn insert_len() {
-    let mut t: CritBit<u8, ()> = CritBit::new();
-    assert_eq!(t.len(), 0);
+    #[test]
+    fn empty_get_mut() {
+        let mut t: CritBit<u8, ()> = CritBit::new();
+        assert!(t.get_mut(&0u8).is_none());
+        assert!(t.get_mut(&128u8).is_none());
+        assert!(t.get_mut(&255u8).is_none());
+    }
 
-    t.insert(0u8, ());
-    assert_eq!(t.len(), 1)
-}
+    #[test]
+    fn insert_len() {
+        let mut t: CritBit<u8, ()> = CritBit::new();
+        assert_eq!(t.len(), 0);
 
-#[test]
-fn insert_contains_key() {
-    let mut t: CritBit<u8, ()> = CritBit::new();
-    assert!(!t.contains_key(&0u8));
+        t.insert(0u8, ());
+        assert_eq!(t.len(), 1)
+    }
 
-    t.insert(0u8, ());
-    assert!(t.contains_key(&0u8));
-}
+    #[test]
+    fn insert_contains_key() {
+        let mut t: CritBit<u8, ()> = CritBit::new();
+        assert!(!t.contains_key(&0u8));
 
-#[test]
-fn insert_get() {
-    let mut t: CritBit<u8, u8> = CritBit::new();
-    assert_eq!(t.get(&0u8), None);
+        t.insert(0u8, ());
+        assert!(t.contains_key(&0u8));
+    }
 
-    t.insert(0u8, 1u8);
-    assert_eq!(t.get(&0u8), Some(&1u8));
-}
+    #[test]
+    fn insert_get() {
+        let mut t: CritBit<u8, u8> = CritBit::new();
+        assert_eq!(t.get(&0u8), None);
 
-#[test]
-fn insert_get_mut() {
-    let mut t: CritBit<u8, u8> = CritBit::new();
-    assert_eq!(t.get(&0u8), None);
+        t.insert(0u8, 1u8);
+        assert_eq!(t.get(&0u8), Some(&1u8));
+    }
 
-    t.insert(0u8, 1u8);
-    assert_eq!(t.get(&0u8), Some(&1u8));
+    #[test]
+    fn insert_get_mut() {
+        let mut t: CritBit<u8, u8> = CritBit::new();
+        assert_eq!(t.get(&0u8), None);
 
-    *t.get_mut(&0u8).unwrap() = 2u8;
-    assert_eq!(t.get(&0u8), Some(&2u8));
-}
+        t.insert(0u8, 1u8);
+        assert_eq!(t.get(&0u8), Some(&1u8));
 
-#[test]
-fn insert_insert() {
-    let mut t: CritBit<u8, u8> = CritBit::new();
-    assert_eq!(t.get(&0u8), None);
+        *t.get_mut(&0u8).unwrap() = 2u8;
+        assert_eq!(t.get(&0u8), Some(&2u8));
+    }
 
-    t.insert(0u8, 1u8);
-    assert_eq!(t.get(&0u8), Some(&1u8));
+    #[test]
+    fn insert_insert() {
+        let mut t: CritBit<u8, u8> = CritBit::new();
+        assert_eq!(t.get(&0u8), None);
 
-    assert_eq!(t.insert(0u8, 2u8), Some(1u8));
-    assert_eq!(t.get(&0u8), Some(&2u8));
+        t.insert(0u8, 1u8);
+        assert_eq!(t.get(&0u8), Some(&1u8));
+
+        assert_eq!(t.insert(0u8, 2u8), Some(1u8));
+        assert_eq!(t.get(&0u8), Some(&2u8));
+    }
 }
