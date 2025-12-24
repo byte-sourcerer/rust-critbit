@@ -47,6 +47,10 @@ where
         self.0 = None;
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.0.is_none()
+    }
+
     pub fn len(&self) -> usize {
         self.0.iter().map(CritBitNode::len).fold(0, Add::add)
     }
@@ -126,7 +130,7 @@ impl<K: PrimInt, V> CritBitNode<K, V> {
                     std::mem::replace(self, CritBitNode::Internal((None, None), 0))
                 {
                     let crit = (k ^ key).leading_zeros();
-                    std::mem::replace(
+                    let _ = std::mem::replace(
                         self,
                         CritBitNode::Internal(
                             if k < key {
